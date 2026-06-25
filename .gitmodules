@@ -1,0 +1,3 @@
+[submodule "meshtorch"]
+	path = meshtorch
+	url = git@github.com:ariva00/meshtorch.git
