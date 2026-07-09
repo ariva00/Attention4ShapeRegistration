@@ -5,8 +5,6 @@ import torch
 from meshtorch import faces_to_edges, edges_to_adj
 from scipy.sparse.csgraph import dijkstra
 
-from PyRMT import RMTMesh
-
 def _geodesic_distance(points:torch.Tensor, faces:torch.Tensor, source:torch.Tensor=None):
     edges = faces_to_edges(faces)
     distance = torch.cdist(points.cpu(), points.cpu())
@@ -28,6 +26,15 @@ def compute_rematching(shape, faces, landmarks_idx, landmarks_id, args):
     """Rematching (Section 4.6.2/Table 5): remesh a shape down to args.rmt points so the couple
     fits in CPU memory, returning the data needed to later map a registration back onto the
     original discretization via barycentric coordinates."""
+    try:
+        from PyRMT import RMTMesh
+    except ImportError as e:
+        raise ImportError(
+            "--rmt requires PyRMT, which is not installed. Install it from the "
+            "`python-binding` branch of https://github.com/filthynobleman/rematching "
+            "(see the README's Installation section)."
+        ) from e
+
     rmt_v = numpy.asfortranarray(shape[0].cpu().numpy())
     rmt_f = numpy.asfortranarray(faces[0].cpu().int().numpy())
     rmt = RMTMesh(rmt_v, rmt_f)

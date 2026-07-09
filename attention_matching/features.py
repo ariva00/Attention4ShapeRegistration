@@ -3,12 +3,20 @@ import os
 import numpy
 import torch
 
-from geomfum.shape import TriangleMesh
-from geomfum.descriptor.learned import FeatureExtractor
-
-torch.set_default_dtype(torch.float32)  # geomfum's geomstats import resets this to float64 again
-
 from .model import AttentionMatcher
+
+def _import_geomfum():
+    try:
+        from geomfum.shape import TriangleMesh
+        from geomfum.descriptor.learned import FeatureExtractor
+    except ImportError as e:
+        raise ImportError(
+            "--diffusionnet requires geomfum, which is not installed. Install it from "
+            "source from https://github.com/3diglab/geomfum (see the README's "
+            "Installation section)."
+        ) from e
+    torch.set_default_dtype(torch.float32)  # geomfum's geomstats import resets this to float64 again
+    return TriangleMesh, FeatureExtractor
 
 def get_model(args):
     in_dim = (3 if args.coordinates else 0) + args.landmarks
@@ -29,9 +37,11 @@ def get_model(args):
     return model.to(args.device)
 
 def get_diffusionnet(args):
+    _, FeatureExtractor = _import_geomfum()
     return FeatureExtractor.from_registry(which="diffusionnet", descriptor=None, in_channels=3, out_channels=args.dim, device=args.device).to(args.device)
 
 def compute_diffusionnet_features(diffusionnet, shape, faces):
+    TriangleMesh, _ = _import_geomfum()
     mesh = TriangleMesh(shape[0], faces[0])
     mesh.laplacian.find_spectrum(spectrum_size=128, set_as_basis=True)
     return diffusionnet(mesh).double().to(shape.device).unsqueeze(0)

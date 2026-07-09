@@ -45,7 +45,7 @@ The project targets Python 3.10+ and was tested with PyTorch 2.x. We recommend w
    pip install -r requirements.txt
    ```
 
-4. **Install PyRMT** (used for the Rematching-based resampling described in Section 4.6.2). It must be installed from the `python-binding` branch of the original repository, **not** any package index:
+4. **(Optional) Install PyRMT**, needed only for `--rmt` (the Rematching-based resampling described in Section 4.6.2). It must be installed from the `python-binding` branch of the original repository, **not** any package index:
 
    ```bash
    git clone --branch python-binding https://github.com/filthynobleman/rematching.git
@@ -54,12 +54,16 @@ The project targets Python 3.10+ and was tested with PyTorch 2.x. We recommend w
 
    Refer to that repository's own README for any platform-specific build prerequisites (it builds a C++ extension).
 
-5. **Install [geomfum](https://github.com/3diglab/geomfum)** from source rather than from PyPI, since the project relies on the latest `main` branch:
+5. **(Optional) Install [geomfum](https://github.com/3diglab/geomfum)**, needed only for `--diffusionnet` (Section 6.2). Install from source rather than from PyPI, since the project relies on the latest `main` branch:
 
    ```bash
    git clone https://github.com/3diglab/geomfum.git
    pip install ./geomfum
    ```
+
+   Steps 4 and 5 are both optional: the rest of the pipeline runs fine without them, and
+   passing `--rmt`/`--diffusionnet` without the corresponding package installed raises a
+   clear error telling you to install it.
 
 ## Datasets
 

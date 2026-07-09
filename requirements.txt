@@ -4,8 +4,8 @@ numpy<2.4
 scipy
 trimesh
 tqdm
-geomstats
 
-# geomfum and PyRMT have additional, package-specific installation steps,
-# see the "Installation" section of the README -- do not install them with
+# geomfum and PyRMT are optional, needed only for --diffusionnet and --rmt
+# respectively, and have additional, package-specific installation steps -- see the
+# "Installation" section of the README. Do not install them with
 # `pip install geomfum` / `pip install PyRMT`.
