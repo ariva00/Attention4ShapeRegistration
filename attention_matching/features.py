@@ -43,7 +43,14 @@ def get_diffusionnet(args):
 def compute_diffusionnet_features(diffusionnet, shape, faces):
     TriangleMesh, _ = _import_geomfum()
     mesh = TriangleMesh(shape[0], faces[0])
-    mesh.laplacian.find_spectrum(spectrum_size=128, set_as_basis=True)
+    # scipy's ARPACK solver used by find_spectrum always returns float64 eigenvalues,
+    # regardless of input precision; geomfum's internal dtype checks require the
+    # ambient default dtype to match, so cast to it for the duration of this call.
+    torch.set_default_dtype(torch.float64)
+    try:
+        mesh.laplacian.find_spectrum(spectrum_size=128, set_as_basis=True)
+    finally:
+        torch.set_default_dtype(torch.float32)
     return diffusionnet(mesh).double().to(shape.device).unsqueeze(0)
 
 def get_input_features(args, diffusionnet, shape_A, shape_B, faces_A, faces_B, name_A, name_B):
