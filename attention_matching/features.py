@@ -6,6 +6,8 @@ import torch
 from geomfum.shape import TriangleMesh
 from geomfum.descriptor.learned import FeatureExtractor
 
+torch.set_default_dtype(torch.float32)  # geomfum's geomstats import resets this to float64 again
+
 from .model import AttentionMatcher
 
 def get_model(args):
