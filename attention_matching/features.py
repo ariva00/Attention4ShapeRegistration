@@ -34,7 +34,7 @@ def get_model(args):
         matcher_only=args.matcher_only,
         symmetric=args.symmetric,
     )
-    return model.to(args.device)
+    return model.to(device=args.device, dtype=args.dtype)
 
 def get_diffusionnet(args):
     _, FeatureExtractor = _import_geomfum()

@@ -10,11 +10,10 @@ class FourierFeatures(torch.nn.Module):
         self.register_buffer("phases", 2 * torch.pi * torch.rand(num_channels))
 
     def forward(self, x):
-        y = x.float()
-        y = y.flatten().outer(self.freqs.float())
-        y = y + self.phases.float()
+        y = x.flatten().outer(self.freqs)
+        y = y + self.phases
         y = y.cos() * np.sqrt(2)
-        return y.reshape((x.shape[0], x.shape[1], x.shape[2]*y.shape[-1])).to(x.dtype)
+        return y.reshape((x.shape[0], x.shape[1], x.shape[2]*y.shape[-1]))
 
 class PointFeatureExtractor(Transformer):
     """Self-attention feature extractor (l_self layers, h heads), Section 4.2."""

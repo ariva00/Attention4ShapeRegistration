@@ -10,13 +10,13 @@ def _geodesic_distance(points:torch.Tensor, faces:torch.Tensor, source:torch.Ten
     distance = torch.cdist(points.cpu(), points.cpu())
     adj = edges_to_adj(edges, num_vertices=points.size(1)).cpu().to_dense()
     adj = adj*distance
-    geodesic = torch.cat([torch.tensor(dijkstra(a.cpu().numpy(), indices=source.cpu().numpy() if source is not None else source)).float().unsqueeze(0) for a in adj.unbind(dim=0)], dim=0)
+    geodesic = torch.cat([torch.tensor(dijkstra(a.cpu().numpy(), indices=source.cpu().numpy() if source is not None else source)).to(points.dtype).unsqueeze(0) for a in adj.unbind(dim=0)], dim=0)
     distance = distance[:, source.cpu()] if source is not None else distance
     geodesic = geodesic.where(geodesic != torch.inf, distance)
     return geodesic
 
 def compute_shape_info(shape, faces, args):
-    shape = shape.float()
+    shape = shape.to(args.dtype)
     distances = _geodesic_distance(shape, faces)
     if not args.cpu_dist:
         distances = distances.to(args.device)

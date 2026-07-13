@@ -13,15 +13,15 @@ def get_dataloader(args):
     ])
 
     if args.dataset == "shrec20":
-        data_train = SHREC20bDataset(args.path_data, transform=transform_train)
+        data_train = SHREC20bDataset(args.path_data, transform=transform_train, dtype=args.dtype)
     elif args.dataset == "faust":
-        data_train = FaustDataset(args.path_data, transform=transform_train)
+        data_train = FaustDataset(args.path_data, transform=transform_train, dtype=args.dtype)
     elif args.dataset == "smal-r":
-        data_train = SMAL_RDataset(args.path_data, transform=transform_train)
+        data_train = SMAL_RDataset(args.path_data, transform=transform_train, dtype=args.dtype)
     elif args.dataset == "topkids":
-        data_train = TOPKIDSDataset(args.path_data, transform=transform_train)
+        data_train = TOPKIDSDataset(args.path_data, transform=transform_train, dtype=args.dtype)
     elif args.dataset == "generic":
-        data_train = GenericPairDataset(args.shape_a, args.shape_b, args.landmarks_idx_A, args.landmarks_idx_B, transform=transform_train)
+        data_train = GenericPairDataset(args.shape_a, args.shape_b, args.landmarks_idx_A, args.landmarks_idx_B, transform=transform_train, dtype=args.dtype)
 
     dataloader_train = DataLoader(data_train, batch_size=2 if not args.sparse else None, shuffle=True, drop_last=True if not args.sparse else False)
 
