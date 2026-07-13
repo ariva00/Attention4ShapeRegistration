@@ -156,11 +156,13 @@ If you use this code, please cite:
 
 ```bibtex
 @article{riva2026attention,
-  title     = {Attention Based Optimization for 3D Shape Registration},
-  author    = {Riva, A. and Olearo, L. and Melzi, S.},
   journal   = {Computer Graphics Forum},
+  title     = {{Attention Based Optimization for 3D Shape Registration}},
+  author    = {Riva, Alessandro and Olearo, Lorenzo and Melzi, Simone},
   year      = {2026},
-  doi       = {10.1111/cgf.70525}
+  publisher = {The Eurographics Association and John Wiley & Sons Ltd.},
+  ISSN      = {1467-8659},
+  DOI       = {10.1111/cgf.70525}
 }
 ```
 
