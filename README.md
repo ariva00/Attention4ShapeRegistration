@@ -117,6 +117,26 @@ python test.py \
 
 Run `python train.py --help` for the full list of options (architecture size, ablations such as `--self-only`/`--matcher-only`/`--no-symmetric`, resampling/Rematching settings, DiffusionNet/Diff3f input features, etc.).
 
+### Register two standalone shapes
+
+To fit + evaluate a pair of shapes that don't belong to any of the bundled datasets (any mesh
+format `trimesh` can load), use `register.py` with `--shape-a`/`--shape-b` and a set of paired
+landmark vertex indices (the k-th index of A must correspond to the k-th index of B):
+
+```bash
+python register.py \
+    --shape-a shape_a.obj --shape-b shape_b.obj \
+    --landmarks-idx-A 10 220 981 340 55 \
+    --landmarks-idx-B 12 200 975 341 60 \
+    --run-name my_pair
+```
+
+This runs the same fit + evaluate pipeline as `train.py`, then saves the fitted checkpoint,
+the registered meshes (`A_registered_to_B.ply`/`B_registered_to_A.ply`, each keeping the original
+mesh's connectivity) and the point-to-point correspondence maps (`p2p_AB.txt`/`p2p_BA.txt`) under
+`./models/my_pair/`. All other `train.py` flags (architecture size, `--n-epoch`, `--rmt`, etc.)
+are available too.
+
 ### Reproducing the paper's experiments
 
 The `experiments/` scripts loop `train.py`/`test.py` over every couple of a benchmark and log results to a single CSV:

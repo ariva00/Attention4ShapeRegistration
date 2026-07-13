@@ -25,11 +25,11 @@ def get_train_args_parser():
     parser.add_argument("--symmetric", default=True, action=argparse.BooleanOptionalAction, help="apply the (weight-shared) cross-attention matcher in both directions and average rho_AB with rho_BA^T (Eq.4); --no-symmetric reproduces the Section 6.3 single-direction ablation")
 
     parser.add_argument("--device", default="auto", help="device to use for training, auto will use cuda if available, mps if available, else cpu")
-    parser.add_argument("--double", default=False, action=argparse.BooleanOptionalAction, help="use float64 (double) precision instead of float32 throughout the pipeline")
+    parser.add_argument("--precision", default="mixed", choices=["float", "double", "mixed"], help="float32 everywhere; double uses float64 everywhere; mixed keeps the attention-transformer matmuls in float32 for speed while keeping shape coordinates/distances/loss-metric computation in float64 for precision")
     parser.add_argument("--log-file", default="train.log", help="file to log the training process")
 
     parser.add_argument("--cpu-dist", default=False, action=argparse.BooleanOptionalAction, help="use cpu ram to store the distances matrix")
-    parser.add_argument("--points-permutation", default=True, action=argparse.BooleanOptionalAction, help="apply random permutations to points")
+    parser.add_argument("--points-permutation", default=False, action=argparse.BooleanOptionalAction, help="apply random permutations to points")
 
     parser.add_argument("--landmarks", type=int, default=0, help="number of landmarks (n_lmk), used both as Matching Loss anchors and as the source points of the D_lmk distance feature")
     parser.add_argument("--normalize-dist", default=False, action=argparse.BooleanOptionalAction, help="normalize landmark distances")
@@ -62,6 +62,8 @@ def validate_train_args(args):
 
     assert args.resample_p >= 0.0 and args.resample_p <= 1.0, "--resample-p must be in the interval [0.0, 1.0]"
 
+    assert not (args.points_permutation and args.resample and not args.subsample), "--points-permutation requires --subsample when --resample is set"
+
     if args.couple_names is not None:
         args.couple = args.couple_names
 
@@ -74,7 +76,8 @@ def validate_train_args(args):
             else "cpu"
         )
 
-    args.dtype = torch.float64 if args.double else torch.float32
+    args.dtype = torch.float32 if args.precision == "float" else torch.float64
+    args.model_dtype = torch.float64 if args.precision == "double" else torch.float32
 
     if args.dataset in ("shrec20", "smal-r", "topkids", "generic") and not args.sparse:
         print("INCOMPATIBLE ARGS: chosen dataset does not have dense correspondences, --sparse will be set to True")

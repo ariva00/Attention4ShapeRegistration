@@ -3,6 +3,8 @@ import torch
 
 from meshtorch import faces_to_edges, sample_on_faces, truncate_shape, sample_indices_random
 
+from .utils import get_model_dtype
+
 def train(
         model,
         shape_A, shape_B,
@@ -141,10 +143,12 @@ def train(
     distances_A = distances_A.to(shape_A.device)
     distances_B = distances_B.to(shape_B.device)
 
-    attn_matchings, hiddens = model(x, y, return_hiddens=True)
+    model_dtype = get_model_dtype(model)
+    attn_matchings, hiddens = model(x.to(model_dtype), y.to(model_dtype), return_hiddens=True)
+    attn_matchings = attn_matchings.to(shape_A.dtype)
 
     # LOSS COMPUTATION
-    loss = torch.tensor(0.0, device=shape_A.device)
+    loss = torch.tensor(0.0, device=shape_A.device, dtype=shape_A.dtype)
 
     attn_matchings_AB = attn_matchings.softmax(dim=-1)
     attn_matchings_BA = attn_matchings.softmax(dim=-2)
@@ -168,7 +172,7 @@ def train(
 
     # MATCHING LOSS (Eq.7). During pretraining every point is a landmark by construction
     # (landmark_matches is None and pretraining=True activates the dense variant).
-    matching_loss = torch.tensor(0.0, device=shape_A.device)
+    matching_loss = torch.tensor(0.0, device=shape_A.device, dtype=shape_A.dtype)
 
     if landmark_matches is not None:
         landmark_shape_A = shape_A[:,landmark_matches[:,0]]
@@ -187,8 +191,8 @@ def train(
 
     # DOUBLE PERMUTATION LOSS (Eq.8) and CHAMFER LOSS (Eq.9): only active outside pretraining,
     # per Section 4.5.1 ("the only active loss [during pretraining] is the Matching Loss").
-    double_permutation_loss = torch.tensor(0.0, device=shape_A.device)
-    chamfer_loss = torch.tensor(0.0, device=shape_A.device)
+    double_permutation_loss = torch.tensor(0.0, device=shape_A.device, dtype=shape_A.dtype)
+    chamfer_loss = torch.tensor(0.0, device=shape_A.device, dtype=shape_A.dtype)
 
     if not pretraining:
         double_permutation_loss += (attn_matchings_BA.transpose(-1,-2)@shape_AB - shape_B).norm(dim=-1).mean() + (attn_matchings_AB@shape_BA - shape_A).norm(dim=-1).mean()

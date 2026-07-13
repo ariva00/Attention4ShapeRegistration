@@ -10,6 +10,9 @@ def set_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
+def get_model_dtype(model):
+    return next(model.parameters()).dtype
+
 class CSVLogger:
     def __init__(self, filename, columns=list[str], append=True, sep=","):
         self.filename = filename

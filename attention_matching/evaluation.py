@@ -3,6 +3,7 @@ import torch
 
 from .geometry import _geodesic_distance
 from .metrics import compute_dirichlet_energy
+from .utils import get_model_dtype
 
 def test(model, shape_A, shape_B, faces_A, faces_B, distances_A, distances_B, landmark_distances_A, landmark_distances_B, test_landmark_idx, test_landmark_id, features_A, features_B, symmetric_map_A, symmetric_map_B, rmt_A, rmt_B, args):
 
@@ -25,6 +26,10 @@ def test(model, shape_A, shape_B, faces_A, faces_B, distances_A, distances_B, la
     else:
         x = shape_A
         y = shape_B
+
+    model_dtype = get_model_dtype(model)
+    x = x.to(model_dtype)
+    y = y.to(model_dtype)
 
     if args.resample and args.resample < shape_A.shape[1]:
         # Test-time resampling for shapes too large to fit in GPU memory (supplementary, Section 2):
@@ -60,13 +65,13 @@ def test(model, shape_A, shape_B, faces_A, faces_B, distances_A, distances_B, la
         x = torch.cat([x] + [x for _ in range((N-dim_A)//x.shape[1])] + [x[:, :(N-dim_A)%x.shape[1]]], dim=1).reshape((B, args.resample, x.shape[-1]))
         y = torch.cat([y] + [y for _ in range((N-dim_B)//y.shape[1])] + [y[:, :(N-dim_B)%y.shape[1]]], dim=1).reshape((B, args.resample, y.shape[-1]))
 
-        P = torch.zeros((N, N)).cpu()
+        P = torch.zeros((N, N), dtype=model_dtype).cpu()
         for b_x in range(B):
             for b_y in range(B):
                 P_b = model(x[b_x].unsqueeze(0), y[b_y].unsqueeze(0))
                 P[b_x*args.resample:(b_x+1)*args.resample, b_y*args.resample:(b_y+1)*args.resample] = P_b.cpu()
-        P = torch.cat((P, torch.zeros((P.shape[0], dim_B - (N % dim_B)))), dim=1)
-        P = torch.cat((P, torch.zeros((dim_A - (N % dim_A), P.shape[1]))), dim=0)
+        P = torch.cat((P, torch.zeros((P.shape[0], dim_B - (N % dim_B)), dtype=model_dtype)), dim=1)
+        P = torch.cat((P, torch.zeros((dim_A - (N % dim_A), P.shape[1]), dtype=model_dtype)), dim=0)
         P = P.reshape((-1, dim_A, P.shape[1])).sum(dim=0) / idx_x.cpu().unique(return_counts=True)[1].unsqueeze(-1)
         P = P.transpose(-1,-2).reshape((-1, dim_B, P.shape[0])).sum(dim=0).transpose(-1,-2) / idx_y.cpu().unique(return_counts=True)[1].unsqueeze(0)
         P = P.unsqueeze(0).to(x.device)
@@ -85,6 +90,8 @@ def test(model, shape_A, shape_B, faces_A, faces_B, distances_A, distances_B, la
 
     else:
         P = model(x, y)
+
+    P = P.to(shape_A.dtype)
 
     shape_AB = P.softmax(dim=-1)@shape_B
     shape_BA = P.softmax(dim=-2).transpose(-1,-2)@shape_A
