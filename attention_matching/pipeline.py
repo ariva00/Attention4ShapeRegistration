@@ -185,6 +185,10 @@ def main(args):
 
     model.eval()
 
+    torch.save(model.state_dict(), os.path.join(args.path_model, "model.pt"))
+    if diffusionnet is not None:
+        torch.save(diffusionnet.state_dict(), os.path.join(args.path_model, "diffusionnet.model.pt"))
+
     with torch.no_grad():
         if diffusionnet is not None:
             features_A = compute_diffusionnet_features(diffusionnet, shape_A, faces_A)
@@ -192,7 +196,7 @@ def main(args):
         P, p2p_AB, p2p_BA, out_AB, out_BA, out_AB_p2p, out_BA_p2p, geod_dist_AB, geod_dist_BA, geod_dist_p2p_AB, geod_dist_p2p_BA, eucl_dist_AB, eucl_dist_BA, eucl_dist_p2p_AB, eucl_dist_p2p_BA, shapes_out = test(model, shape_A, shape_B, faces_A, faces_B, distances_A, distances_B, landmark_distances_A, landmark_distances_B, test_landmark_idx, test_landmark_id, features_A, features_B, symmetric_map_A, symmetric_map_B, rmt_A, rmt_B, args)
     out_shape_A, out_shape_B, out_shape_AB, out_shape_BA, out_faces_A, out_faces_B = shapes_out
 
-    return name_A, name_B, out_AB, out_BA, out_AB_p2p, out_BA_p2p, out_shape_BA, out_shape_AB
+    return name_A, name_B, out_AB, out_BA, out_AB_p2p, out_BA_p2p, out_shape_BA, out_shape_AB, p2p_AB, p2p_BA, out_shape_A, out_shape_B, out_faces_A, out_faces_B
 
 def main_test(args):
     """Load an already-trained model checkpoint and evaluate it on a couple."""
@@ -226,4 +230,4 @@ def main_test(args):
         P, p2p_AB, p2p_BA, out_AB, out_BA, out_AB_p2p, out_BA_p2p, geod_dist_AB, geod_dist_BA, geod_dist_p2p_AB, geod_dist_p2p_BA, eucl_dist_AB, eucl_dist_BA, eucl_dist_p2p_AB, eucl_dist_p2p_BA, shapes_out = test(model, shape_A, shape_B, faces_A, faces_B, distances_A, distances_B, landmark_distances_A, landmark_distances_B, test_landmark_idx, test_landmark_id, features_A, features_B, symmetric_map_A, symmetric_map_B, rmt_A, rmt_B, args)
     out_shape_A, out_shape_B, out_shape_AB, out_shape_BA, out_faces_A, out_faces_B = shapes_out
 
-    return out_AB, out_BA, out_AB_p2p, out_BA_p2p
+    return out_AB, out_BA, out_AB_p2p, out_BA_p2p, out_shape_BA, out_shape_AB, p2p_AB, p2p_BA, out_shape_A, out_shape_B, out_faces_A, out_faces_B

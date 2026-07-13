@@ -108,6 +108,10 @@ def run_experiment(name, couples_fn, default_landmarks_idx=None, default_landmar
                 out_BA,
                 out_p2p_AB,
                 out_p2p_BA,
+                _, _,
+                _, _,
+                _, _,
+                _, _,
             ) = main_test(args)
             toc = time.time_ns()
         else:
@@ -120,6 +124,9 @@ def run_experiment(name, couples_fn, default_landmarks_idx=None, default_landmar
                 out_p2p_BA,
                 _,
                 _,
+                _, _,
+                _, _,
+                _, _,
             ) = main_train(args)
             toc = time.time_ns()
         logger.write((

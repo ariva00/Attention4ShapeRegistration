@@ -90,6 +90,41 @@ class SMAL_RDataset(Dataset):
 
         return {'x':shape, 'faces':faces, 'landmarks_id':landmarks_id, 'landmarks_idx':landmarks_idx, 'shape_name':model}
 
+class GenericPairDataset(Dataset):
+    """Wraps two standalone mesh files (not part of a registered benchmark) as a 2-item
+    dataset ("A", "B"), so an arbitrary pair of shapes can flow through the same pipeline
+    as the bundled datasets. Landmarks are the ones supplied by the caller (e.g. via
+    --landmarks-idx-A/--landmarks-idx-B), paired by position: the k-th index of A
+    corresponds to the k-th index of B."""
+
+    def __init__(self, shape_a_path, shape_b_path, landmarks_idx_a, landmarks_idx_b, transform=None):
+        assert len(landmarks_idx_a) == len(landmarks_idx_b), "landmarks_idx_a and landmarks_idx_b must have the same length (they are paired by position)"
+        self.models = ["A", "B"]
+        self.paths = {"A": shape_a_path, "B": shape_b_path}
+        self.landmarks_idx = {
+            "A": torch.tensor(landmarks_idx_a, dtype=torch.long),
+            "B": torch.tensor(landmarks_idx_b, dtype=torch.long),
+        }
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.models)
+
+    def __getitem__(self, index):
+        if isinstance(index, int):
+            index = self.models[index]
+        mesh = trimesh.load_mesh(self.paths[index], process=False)
+        faces = torch.from_numpy(mesh.faces).long()
+        shape = torch.from_numpy(mesh.vertices).float()
+        if self.transform:
+            shape = self.transform(shape)
+
+        landmarks_idx = self.landmarks_idx[index]
+        landmarks_id = torch.arange(landmarks_idx.shape[0])
+
+        return {'x':shape, 'faces':faces, 'landmarks_id':landmarks_id, 'landmarks_idx':landmarks_idx, 'shape_name':index}
+
+
 class TOPKIDSDataset(Dataset):
     def __init__(self, in_path, dataset="TOPKIDS", transform=None):
         self.in_path = os.path.join(in_path, dataset, "off")

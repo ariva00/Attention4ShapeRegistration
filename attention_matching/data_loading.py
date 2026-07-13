@@ -3,7 +3,7 @@ from torch.utils.data import DataLoader
 
 from meshtorch.transforms import RandomRotateOneOrAllAxis, NormalizeShapeAreaWeighted
 
-from .datasets import FaustDataset, SHREC20bDataset, SMAL_RDataset, TOPKIDSDataset
+from .datasets import FaustDataset, SHREC20bDataset, SMAL_RDataset, TOPKIDSDataset, GenericPairDataset
 from .geometry import compute_rematching, compute_shape_info
 
 def get_dataloader(args):
@@ -20,6 +20,8 @@ def get_dataloader(args):
         data_train = SMAL_RDataset(args.path_data, transform=transform_train)
     elif args.dataset == "topkids":
         data_train = TOPKIDSDataset(args.path_data, transform=transform_train)
+    elif args.dataset == "generic":
+        data_train = GenericPairDataset(args.shape_a, args.shape_b, args.landmarks_idx_A, args.landmarks_idx_B, transform=transform_train)
 
     dataloader_train = DataLoader(data_train, batch_size=2 if not args.sparse else None, shuffle=True, drop_last=True if not args.sparse else False)
 
